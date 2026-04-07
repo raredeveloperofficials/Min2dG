@@ -9,14 +9,36 @@ public class GameObject {
 	public float rotation;
 	protected Scene myScene;
 	public ArrayList<Triangle> toucharea;
+    private ArrayList<Component> components;
 	public GameObject(){
 		name = "";
 		id_tags = new ArrayList<>();
 		toucharea = new ArrayList<>();
 		scale = new Vector2();
 		position = new Vector2();
+        components = new ArrayList<>();
 		rotation = 0;
 	}
+    public void addComponent(Component c){
+        components.add(c);
+        c.myObject(this);
+        c.start();
+    }
+    public <C extends Component>Component getComponent(Class<?> comp){
+        for(Component c : components){
+            if(c.getClass().isInstance(comp))return c;
+        }
+        return null;
+    }
+    public Component[] getAllComponents(){
+        return components.toArray(new Component[0]);
+    }
+    public Scene getScene(){
+        return myScene;
+    }
+    public void myScene(Scene myScene){
+        this.myScene = myScene;
+    }
 	public GameObject copy(){
 		GameObject copy = new GameObject();
 		copy.name = new String(name);
