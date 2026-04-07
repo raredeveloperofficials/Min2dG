@@ -21,6 +21,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         gameThread.start();
     }
 	public void setScene(Scene s){
+        s.myView(this);
 		currentScene = s;
 	}
 	public Scene getScene(){
