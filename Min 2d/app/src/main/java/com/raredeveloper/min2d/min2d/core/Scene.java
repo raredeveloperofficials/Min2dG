@@ -7,6 +7,8 @@ public class Scene {
     public int backgroundColor = Color.WHITE,rotation = 0;
 	protected GameView myView;
 	private ArrayList<GameObject> objects;
+    public float zoom =1;
+    public Vector2 cameraPos;
     public GameView getView(){
         return myView;
     }
@@ -28,6 +30,7 @@ public class Scene {
     }
 	public Scene(){
 		objects = new ArrayList<>();
+        cameraPos = new Vector2();
 	}
     public GameObject getObjectWithTags(ArrayList<String> tags){
         for(GameObject o:objects){

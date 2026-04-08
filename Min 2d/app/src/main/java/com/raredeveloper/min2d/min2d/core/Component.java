@@ -3,11 +3,11 @@ import android.view.MotionEvent;
 
 public abstract class Component {
     protected GameObject myObject;
-	public boolean enable = true;
+	public boolean enabled = true;
 	public  void start(){}
 	public  void update(float delta){}
 	public  void destroy(){}
-    public Object getObject(){
+    public GameObject getObject(){
         return myObject;
     }
     public void myObject(GameObject myObject){

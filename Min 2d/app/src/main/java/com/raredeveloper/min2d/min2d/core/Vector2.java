@@ -67,7 +67,11 @@ public final class Vector2 {
     public static Vector2 mul(Vector2 v, float scalar) {
         return new Vector2(v.x * scalar, v.y * scalar);
     }
-
+    public static Vector2 getCenteredXY(float posX, float posY, float width, float height) {
+        float centeredX = posX - width / 2f;
+        float centeredY = posY - height / 2f;
+        return new Vector2(centeredX, centeredY);
+    }
     // --- Magnitude ---
     public float length() {
         return (float) Math.sqrt(x * x + y * y);
