@@ -8,8 +8,11 @@ public class GameObject {
 	public Vector2 scale,position;
 	public float rotation;
 	protected Scene myScene;
+    public boolean enabled = true,visible = true;
 	public ArrayList<Triangle> toucharea;
     private ArrayList<Component> components;
+    private ArrayList<GameObject> children;
+    private GameObject parent = null;
 	public GameObject(){
 		name = "";
 		id_tags = new ArrayList<>();
@@ -19,6 +22,23 @@ public class GameObject {
         components = new ArrayList<>();
 		rotation = 0;
 	}
+    public void setParent(GameObject parent){
+        parent.addChild(this);
+    }
+    public GameObject getChildAt(int index){
+        return children.get(index);
+    }
+    public GameObject getChildWithName(String name){
+        for(GameObject go:children){
+            if(go.name.equals(name))return go;
+        }
+        return null;
+    }
+    public void addChild(GameObject o){
+        o.parent = this;
+        children.add(o);
+    }
+    public GameObject getParent(){return this;}
     public void addComponent(Component c){
         components.add(c);
         c.myObject(this);

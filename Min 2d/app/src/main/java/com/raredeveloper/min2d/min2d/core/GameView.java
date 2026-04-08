@@ -46,6 +46,18 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(currentScene.backgroundColor);
+        
+        int saved1 =canvas.save();
+
+        float centerX = getWidth() / 2f;
+        float centerY = getHeight() / 2f;
+        canvas.translate(centerX, centerY);
+
+        canvas.scale(currentScene.zoom, -currentScene.zoom);
+        canvas.translate(-currentScene.cameraPos.x, -currentScene.cameraPos.y);
+        
+        //loop logic
+        canvas.restoreToCount(saved1);
     }
 }
 
