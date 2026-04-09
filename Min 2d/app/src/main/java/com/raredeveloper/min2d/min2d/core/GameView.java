@@ -1,34 +1,61 @@
 package min2d.core;
+
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import min2d.core.Components.Renderer;
+
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
-	private GameThread gameThread;
-	private Scene currentScene;
-	public GameView(Context context) {
+
+    private GameThread gameThread;
+    private Scene currentScene;
+
+    private HashMap<String, ArrayList<GameObject>> layered = new HashMap<String, ArrayList<GameObject>>() {{
+            put("object", new ArrayList<>());
+            put("ui", new ArrayList<>());
+        }};
+
+    private static final ArrayList<String> layers = new ArrayList<String>() {{
+            add("object");
+            add("ui");
+        }};
+
+    public float delta = 0.12f;
+
+    public GameView(Context context) {
         super(context);
         getHolder().addCallback(this);
         gameThread = new GameThread(getHolder(), this);
+        setScene(new Scene());
         setFocusable(true);
+    }
+
+    public Scene getCurrentScene() {
+        return currentScene;
+    }
+
+    public void setScene(Scene s) {
+        s.myView(this);
+        currentScene = s;
+    }
+
+    public Scene getScene() {
+        return currentScene;
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        if (gameThread == null || !gameThread.isAlive()) {
+            gameThread = new GameThread(getHolder(), this);
+        }
         gameThread.setRunning(true);
         gameThread.start();
     }
-	public void setScene(Scene s){
-        s.myView(this);
-		currentScene = s;
-	}
-	public Scene getScene(){
-		return currentScene;
-	}
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -38,26 +65,69 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             try {
                 gameThread.join();
                 retry = false;
-            } catch (InterruptedException e) { }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        canvas.drawColor(currentScene.backgroundColor);
-        
-        int saved1 =canvas.save();
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
+
+    public void render(Canvas canvas) {
+        if (currentScene == null) return;
+
+        long nano = System.nanoTime();
+        Scene nowScene = currentScene;
+
+        canvas.drawColor(nowScene.backgroundColor);
+
+        int saved1 = canvas.save();
+
+        for (String key : layered.keySet()) {
+            layered.get(key).clear();
+        }
 
         float centerX = getWidth() / 2f;
         float centerY = getHeight() / 2f;
         canvas.translate(centerX, centerY);
 
-        canvas.scale(currentScene.zoom, -currentScene.zoom);
-        canvas.translate(-currentScene.cameraPos.x, -currentScene.cameraPos.y);
-        
-        //loop logic
+        canvas.scale(nowScene.zoom, -nowScene.zoom);
+        canvas.translate(-nowScene.cameraPos.x, -nowScene.cameraPos.y);
+
+        for (GameObject g : nowScene.getAllObjects()) {
+            if (g != null && g.Layer != null) {
+                if (!layered.containsKey(g.Layer)) {
+                    layered.put(g.Layer, new ArrayList<>());
+                }
+                layered.get(g.Layer).add(g);
+            }
+        }
+
+        for (String layer : layers) {
+            emulateUpdate(layer, canvas);
+        }
+
         canvas.restoreToCount(saved1);
+
+        delta = (System.nanoTime() - nano) / 1_000_000f;
+    }
+
+    private void emulateUpdate(String layer, Canvas canvas) {
+        ArrayList<GameObject> layerobj = layered.get(layer);
+        if (layerobj != null) {
+            for (GameObject obj : layerobj) {
+                if (obj == null) continue;
+
+                for (Component comp : obj.getAllComponents()) {
+                    if (comp == null) continue;
+
+                    if (obj.enabled) comp.update(delta);
+                    if (obj.visible && obj.enabled && comp instanceof Renderer) {
+                        ((Renderer) comp).render(canvas);
+                    }
+                }
+            }
+        }
     }
 }
-
