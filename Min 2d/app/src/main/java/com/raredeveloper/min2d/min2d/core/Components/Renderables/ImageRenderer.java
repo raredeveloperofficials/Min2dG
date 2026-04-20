@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import java.util.HashMap;
 
 import min2d.core.Components.Renderer;
+import android.graphics.Paint;
 
 public class ImageRenderer extends Renderer {
 
@@ -22,7 +23,7 @@ public class ImageRenderer extends Renderer {
     }
 
     @Override
-    public void render(Canvas canvas) {
+    public void render(Canvas canvas,Paint p) {
         if (image == null || myObject == null) return;
 
         matrix.reset();
@@ -44,7 +45,9 @@ public class ImageRenderer extends Renderer {
 
         canvas.drawBitmap(image, matrix, null);
     }
-
+    public void setImage(Bitmap image){
+        this.image = image;
+    }
     @Override
     public ImageRenderer copy() {
         ImageRenderer ir = new ImageRenderer();

@@ -13,6 +13,6 @@ public abstract class Component {
     public void myObject(GameObject myObject){
         this.myObject = myObject;
     }
-	public  void input(MotionEvent event){}
+	public  void input(MotionEvent event,Vector2 touchPosition){}
 	public abstract Component copy();
 }

@@ -20,6 +20,7 @@ public class MainActivity extends Activity {
 				public void run() {
 					Intent i = new Intent(MainActivity.this,ProjectsActivity.class);
 					startActivity(i);
+                    overridePendingTransition(0,0);
 					finish();
 				}
 			}, 2000);

@@ -169,4 +169,31 @@ public final class Vector2 {
     public String toString() {
         return "Vector2(" + x + ", " + y + ")";
     }
+    public static Vector2 fromString(String str) {
+        // Remove "Vector2(" and ")"
+        str = str.replace("Vector2(", "").replace(")", "");
+
+        // Split x and y
+        String[] parts = str.split(",");
+
+        float x = Float.parseFloat(parts[0].trim());
+        float y = Float.parseFloat(parts[1].trim());
+
+        return new Vector2(x, y);
+    }
+    public static Vector2 positionInWorld(
+        Vector2 position,
+        Vector2 screenSize,
+        Vector2 cameraPosition,
+        float zoom
+    ) {
+        float centerX = screenSize.x / 2f;
+        float centerY = screenSize.y / 2f;
+
+        float worldX = (position.x - centerX) / zoom + cameraPosition.x;
+
+        float worldY = (centerY - position.y) / zoom + cameraPosition.y;
+
+        return new Vector2(worldX, worldY);
+    }
 }
