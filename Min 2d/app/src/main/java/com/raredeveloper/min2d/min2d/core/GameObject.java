@@ -25,6 +25,8 @@ public class GameObject {
         name = "";
         id_tags = new ArrayList<>();
         toucharea = new ArrayList<>();
+        toucharea.add(new Triangle(new Vector2(1,1),new Vector2(-1,-1),new Vector2(1,-1)));
+        toucharea.add(new Triangle(new Vector2(1,1),new Vector2(-1,1),new Vector2(-1,-1)));
         scale = new Vector2(100, 100);
         position = new Vector2();
         components = new ArrayList<>();

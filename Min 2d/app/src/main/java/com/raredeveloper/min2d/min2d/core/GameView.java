@@ -2,19 +2,19 @@ package min2d.core;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import min2d.core.Components.Renderer;
 
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     private GameThread gameThread;
     private Scene currentScene;
-
+    private Paint p;
     private HashMap<String, ArrayList<GameObject>> layered = new HashMap<String, ArrayList<GameObject>>() {{
             put("object", new ArrayList<>());
             put("ui", new ArrayList<>());
@@ -26,9 +26,44 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }};
 
     public float delta = 0.12f;
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
 
+        Vector2 touchWorld = Vector2.positionInWorld(
+            new Vector2(event.getX(), event.getY()),
+            new Vector2(getWidth(), getHeight()),
+            getCurrentScene().cameraPos,
+            getCurrentScene().zoom
+        );
+
+        for (GameObject obj : getCurrentScene().getAllObjects()) {
+
+            if (obj == null || obj.toucharea == null||!obj.enabled) continue;
+
+            boolean touched = false;
+
+            for (Triangle t : obj.toucharea) {
+
+                Triangle wt = Triangle.transform(t, obj.position, obj.scale);
+
+                if (Triangle.pointInTriangle(touchWorld, wt)) {
+                    touched = true;
+                    break;
+                }
+            }
+
+            if (touched) {
+                for (Component c : obj.getAllComponents()) {
+                    c.input(event, touchWorld);
+                }
+            }
+        }
+
+        return true;
+    }
     public GameView(Context context) {
         super(context);
+        p = new Paint();
         getHolder().addCallback(this);
         gameThread = new GameThread(getHolder(), this);
         setScene(new Scene());
@@ -124,7 +159,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
                     if (obj.enabled) comp.update(delta);
                     if (obj.visible && obj.enabled && comp instanceof Renderer) {
-                        ((Renderer) comp).render(canvas);
+                        ((Renderer) comp).render(canvas,p);
                     }
                 }
             }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class Scene {
 
-    public int backgroundColor = Color.rgb(255, 122, 1);
+    public int backgroundColor = Color.BLACK;
     public int rotation = 0;
 
     protected GameView myView;
