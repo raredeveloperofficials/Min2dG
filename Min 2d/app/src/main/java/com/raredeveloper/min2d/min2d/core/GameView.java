@@ -1,5 +1,6 @@
 package min2d.core;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -15,6 +16,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private GameThread gameThread;
     private Scene currentScene;
     private Paint p;
+    public Vector2 dragVal = new Vector2();
+    private Vector2 prevtouchpos=new Vector2();
     private HashMap<String, ArrayList<GameObject>> layered = new HashMap<String, ArrayList<GameObject>>() {{
             put("object", new ArrayList<>());
             put("ui", new ArrayList<>());
@@ -24,8 +27,24 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             add("object");
             add("ui");
         }};
-
+    public static final String LAYER_OBJECT = "object";
+    public static final String LAYER_UI = "ui";
     public float delta = 0.12f;
+    
+    public void addLayer(String layer){
+        if(layer.equals("object")||layer.equals("ui"))return;
+        int index = GameView.layers.size()-1;
+        GameView.layers.add(index,layer);
+        layered.put(layer,new ArrayList<>());
+    }
+    public void removeLayer(String layer){
+        if(layer.equals("object")||layer.equals("ui"))return;
+        GameView.layers.remove(layer);
+        for(GameObject o: layered.get(layer)){
+            o.Layer = "object";
+        }
+        layered.remove(layer);
+    }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -35,31 +54,60 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             getCurrentScene().cameraPos,
             getCurrentScene().zoom
         );
-
+        switch(event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                prevtouchpos.set(touchWorld.x,touchWorld.y);
+                break;
+            case MotionEvent.ACTION_MOVE:
+                dragVal.set(touchWorld.x-prevtouchpos.x,touchWorld.y-prevtouchpos.y);
+                prevtouchpos.set(touchWorld.x,touchWorld.y);
+                break;
+            case MotionEvent.ACTION_UP:
+                dragVal.set(0,0);
+                break;
+        }
         for (GameObject obj : getCurrentScene().getAllObjects()) {
-
             if (obj == null || obj.toucharea == null||!obj.enabled) continue;
-
-            boolean touched = false;
-
-            for (Triangle t : obj.toucharea) {
-
-                Triangle wt = Triangle.transform(t, obj.position, obj.scale);
-
-                if (Triangle.pointInTriangle(touchWorld, wt)) {
-                    touched = true;
-                    break;
-                }
-            }
-
-            if (touched) {
-                for (Component c : obj.getAllComponents()) {
-                    c.input(event, touchWorld);
-                }
-            }
+            DetectTouchForObj(obj,event,touchWorld);
+            
         }
 
         return true;
+    }
+    
+    private void DetectTouchForObj(GameObject obj,MotionEvent event,Vector2 touchWorld){
+        
+
+        boolean touched = false;
+        for (Triangle t : obj.toucharea) {
+
+            Triangle wt = Triangle.transform(t, obj.global_position, obj.scale);
+
+            if (Triangle.pointInTriangle(touchWorld, wt)) {
+                touched = true;
+                if(obj.childCount()!=0&&obj.blockInputOutOfBound)
+                    for(int i = 0;i<obj.childCount();i++){
+                        obj.getChildAt(i).myScene(obj.getScene());
+                        DetectTouchForObj(obj.getChildAt(i),event,touchWorld);
+                    }
+                break;
+            }
+        }
+
+        if (touched) {
+            for (Component c : obj.getAllComponents()) {
+                c.input(event, touchWorld);
+            }
+        }
+        
+        if(obj.childCount()!=0&&!obj.blockInputOutOfBound)
+            for(int i = 0;i<obj.childCount();i++){
+                obj.getChildAt(i).myScene(obj.getScene());
+                DetectTouchForObj(obj.getChildAt(i),event,touchWorld);
+            }
+    }
+    public void runOnUiThread(Runnable run){
+        ((Activity)getContext()).runOnUiThread(run);
     }
     public GameView(Context context) {
         super(context);
@@ -153,16 +201,34 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         if (layerobj != null) {
             for (GameObject obj : layerobj) {
                 if (obj == null) continue;
-
-                for (Component comp : obj.getAllComponents()) {
-                    if (comp == null) continue;
-
-                    if (obj.enabled) comp.update(delta);
-                    if (obj.visible && obj.enabled && comp instanceof Renderer) {
-                        ((Renderer) comp).render(canvas,p);
-                    }
-                }
+                
+                updateObj(obj,canvas);
             }
+        }
+    }
+    private void updateObj(GameObject obj,Canvas canvas){
+        for (Component comp : obj.getAllComponents()) {
+            if (comp == null) continue;
+
+            if (obj.enabled) comp.update(delta);
+            if (obj.visible && obj.enabled && comp instanceof Renderer) {
+                obj.getGlobalPosition();
+                ((Renderer) comp).render(canvas,p);
+            }
+        }
+        if(obj.childCount()!=0)
+        for(int i = 0; i < obj.childCount();i++){
+            GameObject child = obj.getChildAt(i);
+            child.myScene(obj.getScene());
+            if(child==null)continue;
+            
+            
+            updateObj(child,canvas);
+            
+        }
+        for (Component comp : obj.getAllComponents()) {
+            if (comp == null) continue;
+            if(comp instanceof Renderer)((Renderer)comp).afterChildUpdateFinished(canvas);
         }
     }
 }

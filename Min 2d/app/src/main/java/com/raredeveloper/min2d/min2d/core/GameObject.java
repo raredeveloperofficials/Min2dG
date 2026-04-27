@@ -8,9 +8,9 @@ public class GameObject {
     public String Layer = "object";
 
     public ArrayList<String> id_tags;
-    public Vector2 scale, position;
+    public Vector2 scale, position,global_position;
     public float rotation;
-
+    public boolean blockInputOutOfBound = false;
     protected Scene myScene;
 
     public boolean enabled = true, visible = true;
@@ -24,6 +24,7 @@ public class GameObject {
     public GameObject() {
         name = "";
         id_tags = new ArrayList<>();
+        global_position = new Vector2();
         toucharea = new ArrayList<>();
         toucharea.add(new Triangle(new Vector2(1,1),new Vector2(-1,-1),new Vector2(1,-1)));
         toucharea.add(new Triangle(new Vector2(1,1),new Vector2(-1,1),new Vector2(-1,-1)));
@@ -33,15 +34,31 @@ public class GameObject {
         children = new ArrayList<>();
         rotation = 0;
     }
-
+    public void setGlobalPosition(Vector2 pos){
+        if(parent != null)
+            position = Vector2.sub(pos, parent.global_position);
+        else
+            position = new Vector2(pos);
+    }
     public void setParent(GameObject parent) {
         if (parent != null) parent.addChild(this);
     }
-
+    public Vector2 getGlobalPosition(){
+       if(parent==null){
+           global_position.set(position);
+       }
+       else{
+           parent.getGlobalPosition();
+           global_position.set(position.x+parent.global_position.x,position.y+parent.global_position.y);
+       }
+       return global_position;
+    }
     public GameObject getChildAt(int index) {
         return children.get(index);
     }
-
+    public int childCount(){
+        return children.size();
+    }
     public GameObject getChildWithName(String name) {
         for (GameObject go : children) {
             if (go != null && go.name != null && go.name.equals(name)) return go;
@@ -52,6 +69,7 @@ public class GameObject {
     public void addChild(GameObject o) {
         if (o == null) return;
         o.parent = this;
+        o.myScene(getScene());
         children.add(o);
     }
 
@@ -63,7 +81,7 @@ public class GameObject {
         if (c == null) return;
         components.add(c);
         c.myObject(this);
-        c.start();
+        if(c.getObject().getScene()!=null)c.start();
     }
 
     public boolean removeComponent(Component c) {
@@ -78,7 +96,7 @@ public class GameObject {
         }
         return null;
     }
-
+    
     public Component[] getAllComponents() {
         return components.toArray(new Component[0]);
     }
