@@ -19,6 +19,10 @@ public class Scene {
         cameraPos = new Vector2();
     }
 
+    public void removeObject(GameObject myObject) {
+        objects.remove(myObject);
+    }
+
     public GameView getView() {
         return myView;
     }
@@ -30,9 +34,19 @@ public class Scene {
     public void addObject(GameObject o) {
         if (o == null) return;
         objects.add(o);
-        o.myScene(this);
+        
+        startComponents(o);
     }
-
+    private void startComponents(GameObject o){
+        o.getGlobalPosition();
+        o.myScene(this);
+        for(Component c:o.getAllComponents()){
+            c.start();
+            for(int i = 0;i <o.childCount();i++){
+                startComponents(o.getChildAt(i));
+            }
+        }
+    }
     public GameObject getObjectAt(int index) {
         return objects.get(index);
     }

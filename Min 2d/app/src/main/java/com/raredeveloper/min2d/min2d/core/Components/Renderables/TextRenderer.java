@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import java.util.HashMap;
 import min2d.core.Components.Renderer;
+import min2d.core.Vector2;
 
 public class TextRenderer extends Renderer {
 
@@ -118,7 +119,7 @@ public class TextRenderer extends Renderer {
         if (bold && italic) style = Typeface.BOLD_ITALIC;
         else if (bold) style = Typeface.BOLD;
         else if (italic) style = Typeface.ITALIC;
-
+        Vector2 pos = myObject.global_position;
         p.setTypeface(Typeface.create(typeface, style));
         p.setTextSize(textSize);
         p.setTextAlign(align);
@@ -133,7 +134,7 @@ public class TextRenderer extends Renderer {
         );
 
         matrix.postRotate(myObject.rotation);
-        matrix.postTranslate(myObject.position.x, myObject.position.y);
+        matrix.postTranslate(pos.x+offset.x, pos.y+offset.y);
 
         canvas.save();
         canvas.concat(matrix);

@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import min2d.core.Components.Renderer;
 import android.graphics.Paint;
+import min2d.core.Vector2;
 
 public class ImageRenderer extends Renderer {
 
@@ -30,6 +31,7 @@ public class ImageRenderer extends Renderer {
 
         float halfW = image.getWidth() / 2f;
         float halfH = image.getHeight() / 2f;
+        Vector2 pos = myObject.global_position;
 
         // Pivot around image center
         matrix.postTranslate(-halfW, -halfH);
@@ -41,7 +43,7 @@ public class ImageRenderer extends Renderer {
         matrix.postRotate(myObject.rotation);
 
         // Translate to object position
-        matrix.postTranslate(myObject.position.x, myObject.position.y);
+        matrix.postTranslate(pos.x+offset.x, pos.y+offset.y);
 
         canvas.drawBitmap(image, matrix, null);
     }
